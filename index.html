@@ -96,7 +96,7 @@
     cScene.add(cube);
 
     //使用tween来让物体动起来
-    new TWEEN.Tween(cube.position).to({x:10},3000).repeat(Infinity).start();
+    // new TWEEN.Tween(cube.position).to({x:10},3000).repeat(Infinity).start();
 
     // 设置光源
     var cLight = new THREE.DirectionalLight(0xff0000,1.0,0);
@@ -110,7 +110,7 @@
         cThree.render(cScene, cCamera);
         requestAnimationFrame(render);
         stats.update();
-        TWEEN.update();
+        // TWEEN.update();
     }
     render();
 </script>
