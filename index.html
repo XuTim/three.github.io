@@ -20,7 +20,8 @@
     // 初始化场景
     var cScene = new THREE.Scene();
     // 初始化相机
-    var cCamera = new THREE.PerspectiveCamera(75, swidth / sheight, 0.1, 1000);
+    var cCamera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 10, 1000 );
+    // var cCamera = new THREE.PerspectiveCamera(75, swidth / sheight, 0.1, 1000);
     cCamera.position.x = 5;             //相机的位置
     cCamera.position.y = 5;
     cCamera.position.z = 5;
