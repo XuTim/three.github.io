@@ -38,11 +38,10 @@
   
     var musics = [{
         name: "乌克丽丽",
-        src: "wkll.mp3"
+        src: "乌克丽丽.mp3"
     }, {
-      
-      name: "Now You See Me",
-      src: "nowyouseeme.mp3"
+        name: "Now You See Me",
+        src: "nowyouseeme.mp3"
     }];
     var nowIndex = 0;   //当前播放到的音乐索引
     var singleLoop = false; //是否单曲循环
