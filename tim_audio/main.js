@@ -37,6 +37,9 @@
     var audio = $(".music-player")[0];
   
     var musics = [{
+      name: "seve",
+      src: "seve.mp3"
+  }, {
         name: "乌克丽丽",
         src: "乌克丽丽.mp3"
     }, {
