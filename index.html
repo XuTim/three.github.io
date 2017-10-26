@@ -100,8 +100,8 @@
     // new TWEEN.Tween(cube.position).to({x:10},3000).repeat(Infinity).start();
 
     // 设置光源
-    var cLight = new THREE.DirectionalLight(0xff0000,1.0,0);
-    cLight.position.set(100,100,200);
+    var cLight = new THREE.DirectionalLight(0xff0000,1);
+    cLight.position.set(0,0,1);
     cScene.add(cLight);
 
     function render(){
