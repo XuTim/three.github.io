@@ -10,10 +10,12 @@
 <script src="js/three.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/tween.js"></script>
+<script src="js/clock.js"></script>
 <body>
     <div id="threeScene" class="threeScene"></div>
 </body>
 <script>
+    clock();
     var swidth = document.getElementById("threeScene").clientWidth;
     var sheight= document.getElementById("threeScene").clientHeight;
     // 初始化场景
@@ -102,21 +104,25 @@
     setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, y:-160});
     setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, z:-90});
     setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, z:330});
-    var geometry = new THREE.PlaneGeometry( 500, 300, 1, 1 );
-    geometry.vertices[0].uv = new THREE.Vector2(0,0);
-    geometry.vertices[1].uv = new THREE.Vector2(2,0);
-    geometry.vertices[2].uv = new THREE.Vector2(2,2);
-    geometry.vertices[3].uv = new THREE.Vector2(0,2);
-    // A end
-    // B begin
-    // 纹理坐标怎么弄
-    var texture = THREE.ImageUtils.loadTexture("css/2017102801.png",null,function(t)
-    {
-    });
+    var geometry = new THREE.CubeGeometry(120, 120, 120);
+    var texture = new THREE.Texture( canvas);
     var material = new THREE.MeshBasicMaterial({map:texture});
+    texture.needsUpdate = true;
     var mesh = new THREE.Mesh( geometry,material );
+    mesh.position.set(0,0,100);
     cScene.add( mesh );
-    //有一个立方体 end
+//    var geometry = new THREE.PlaneGeometry( 400, 240, 1, 1 );
+//    geometry.vertices[0].uv = new THREE.Vector2(0,0);
+//    geometry.vertices[1].uv = new THREE.Vector2(1,0);
+//    geometry.vertices[2].uv = new THREE.Vector2(1,1);
+//    geometry.vertices[3].uv = new THREE.Vector2(0,1);
+//    // 纹理坐标怎么弄
+//    var texture = THREE.ImageUtils.loadTexture("css/2017102801.png",null,function(t){ });
+//    var material = new THREE.MeshBasicMaterial({map:texture});
+//    var mesh = new THREE.Mesh( geometry,material );
+//    mesh.position.set(0,0,-60);
+//    cScene.add( mesh );
+    // end
 
     //使用tween来让物体动起来
     // new TWEEN.Tween(cube.position).to({x:10},3000).repeat(Infinity).start();
@@ -125,13 +131,14 @@
     // cLight.position.set(0,0,1);
     // cScene.add(cLight);
     //setLight({c:cScene, s:0xff0000});//增加环境光，最基础的，不用t，不用方向。
-    setLight({c:cScene, t:2, s:0x00ff00, x:0, y:0, z:50});//点光
+    var l1 = setLight( { c:cScene, t:2, s:0x00ff00, x:0, y:0, z:50 } );//点光
 
-    
+
     function render(){
 //        cCamera.position.x = cCamera.position.x +0.1;
 //        cube.position.x += 0.02;
 //        cube.rotation.y += 0.02;
+        texture.needsUpdate = true;
         cThree.render(cScene, cCamera);
         requestAnimationFrame(render);
         stats.update();
@@ -182,6 +189,7 @@
         // end
         l.position.set( obj.x || 0, obj.y || 0, obj.z || 0 );
         obj.c.add( l );
+        return l;
     }
 </script>
 </html>
