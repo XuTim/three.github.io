@@ -11,30 +11,42 @@
 <script src="js/stats.js"></script>
 <script src="js/tween.js"></script>
 <script src="js/clock.js"></script>
+
 <body>
     <div id="threeScene" class="threeScene"></div>
 </body>
 <script>
+//    if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
     clock();
     var swidth = document.getElementById("threeScene").clientWidth;
     var sheight= document.getElementById("threeScene").clientHeight;
+
+
+
     // 初始化场景
     var cScene = new THREE.Scene();
+
+
+
     // 初始化相机
-    // var cCamera = new THREE.OrthographicCamera( swidth / - 2, swidth / 2, sheight / 2, sheight / - 2, 0.1, 1000 );
     var cCamera = new THREE.PerspectiveCamera(75, swidth / sheight, 1, 10000);
-    cCamera.position.x = 200;             //相机的位置
-    cCamera.position.y = 0;
-    cCamera.position.z = 220;
-   cCamera.up.x = 0;                 //相机以哪个方向为上方（默认y轴为上方），就是躺着看，趴着看，侧着看的区别
-   cCamera.up.y = 1;
-   cCamera.up.z = 0;
-    cCamera.lookAt({x:0,y:0,z:0});      //相机看向坐标哪个方向
+    cCamera.position.x = 300;             //相机的位置
+    cCamera.position.y = 200;
+    cCamera.position.z = 320;
+    cCamera.up.x = 0;                     //相机以哪个方向为上方（默认y轴为上方），就是躺着看，趴着看，侧着看的区别
+    cCamera.up.y = 1;
+    cCamera.up.z = 0;
+    cCamera.lookAt({x:0,y:0,z:0});        //相机看向坐标哪个方向
+
+
     // 初始化渲染器
     var cThree = new THREE.WebGLRenderer();
     cThree.setSize(swidth, sheight);
     document.getElementById("threeScene").appendChild(cThree.domElement);
     cThree.setClearColor(0xeeeeee, 1.0);
+
+
+
     // 初始化性能监视器
     var stats = new Stats();
     stats.domElement.style.position = 'absolute';
@@ -42,62 +54,15 @@
     stats.domElement.style.right = '0px';
     stats.domElement.style.top = '0px';
     document.getElementById("threeScene").appendChild(stats.domElement);
-////    立方体
-//    var geometry = new THREE.CubeGeometry(1,1,1);
-//    var material = new THREE.MeshBasicMaterial({color: 0x0000ff});
-//    var cube = new THREE.Mesh(geometry, material);
-//    cube.position.x=-2;
-//    cScene.add(cube);
-////    点线
-//    var geometry1 = new THREE.Geometry();
-//    var material1 = new THREE.LineBasicMaterial( { vertexColors: true} );
-//    var color1 = new THREE.Color( 0x0000ff ), color2 = new THREE.Color( 0xFF0000 ), color3 = new THREE.Color( 0x00FF00 ), color4 = new THREE.Color( 0x777777 );
-//    // 线的材质可以由2点的颜色决定
-//    var p1 = new THREE.Vector3( 0, 0, 0 );
-//    var p2 = new THREE.Vector3( 8, 0, 0 );
-//    geometry1.vertices.push(p1);
-//    geometry1.vertices.push(p2);
-//    geometry1.colors.push( color1, color1 );
-//    var line = new THREE.Line( geometry1, material1, THREE.LinePieces );
-//    cScene.add(line);
-//    var p3 = new THREE.Vector3( 0, 8, 0 );
-//    geometry1.vertices.push(p1);
-//    geometry1.vertices.push(p3);
-//    geometry1.colors.push( color2, color2 );
-//    var line1 = new THREE.Line( geometry1, material1, THREE.LinePieces );
-//    cScene.add(line1);
-//    var p4 = new THREE.Vector3( 0, 0, 8 );
-//    geometry1.vertices.push(p1);
-//    geometry1.vertices.push(p4);
-//    geometry1.colors.push( color3, color3 );
-//    var line2 = new THREE.Line( geometry1, material1, THREE.LinePieces );
-//    cScene.add(line2);
-//
-//    var p5 = new THREE.Vector3(-8,0,0);
-//    var p6 = new THREE.Vector3( 4,0,0);
-//    var geometry2 = new THREE.Geometry();
-//    geometry2.vertices.push(p5);
-//    geometry2.vertices.push(p6);
-//    geometry2.colors.push( color4, color4 );
-//
-//    for ( var i = 0; i <= 9; i ++ ) {
-//        var line5 = new THREE.Line( geometry2, new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2 } ) );
-//        line5.position.z = ( i * 1 )-4;
-//        cScene.add( line5 );
-//        var line6 = new THREE.Line( geometry2, new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.2 } ) );
-//        line6.position.x = ( i * 1 ) - 5;
-//        line6.rotation.y = 90 * Math.PI / 180;
-//        cScene.add( line6 );
-//
-//    }
 
-    //有一个立方体 start
-    // var geometry = new THREE.CubeGeometry(200, 100, 50,4,4);
-    // var material = new THREE.MeshLambertMaterial({color: 0xffffff});
-    // var cube = new THREE.Mesh(geometry, material);
-    // cube.position.set(0,0,0);
-    // cScene.add(cube);
-    setCube({c:cScene, s:0x000000, w:200, h:100, d:50});
+
+    //初始化网格
+    var grid = setGrid( { c:cScene, w:1000, sw:20 } );
+
+
+
+    //立方体 start
+    var c1 = setCube({c:cScene, s:0x000000, w:200, h:100, d:50});
     setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, x:280});
     setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, x:-280});
     setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, y:160});
@@ -109,7 +74,7 @@
     var material = new THREE.MeshBasicMaterial({map:texture});
     texture.needsUpdate = true;
     var mesh = new THREE.Mesh( geometry,material );
-    mesh.position.set(0,0,100);
+    mesh.position.set(-500,300,-200);
     cScene.add( mesh );
 //    var geometry = new THREE.PlaneGeometry( 400, 240, 1, 1 );
 //    geometry.vertices[0].uv = new THREE.Vector2(0,0);
@@ -131,20 +96,38 @@
     // cLight.position.set(0,0,1);
     // cScene.add(cLight);
     //setLight({c:cScene, s:0xff0000});//增加环境光，最基础的，不用t，不用方向。
-    var l1 = setLight( { c:cScene, t:2, s:0x00ff00, x:0, y:0, z:50 } );//点光
+    var l1 = setLight( { c:cScene, t:1, s:0x00ff00, x:0, y:0, z:50 } );
 
 
     function render(){
 //        cCamera.position.x = cCamera.position.x +0.1;
 //        cube.position.x += 0.02;
 //        cube.rotation.y += 0.02;
-        texture.needsUpdate = true;
-        cThree.render(cScene, cCamera);
+        c1.rotateX(0.01);
         requestAnimationFrame(render);
+//        texture.needsUpdate = true;
+//        cControl.update();
+        cThree.render(cScene, cCamera);
+
         stats.update();
         // TWEEN.update();
     }
     render();
+
+
+    /**
+     *  一键创建网格
+     *  obj.c   要加入网格的场景
+     *  obj.w   网格总长宽
+     *  obj.sw  小网格切割数
+     */
+    function setGrid(obj){
+        let g = new THREE.GridHelper( obj.w || 300, obj.sw || 300 );    //网格
+        obj.c.add( g );
+        let a = new THREE.AxisHelper( obj.w || 300 );                   //辅助线
+        obj.c.add( a );
+        return g;
+    }
 
     /**
      *  一键创建物体函数  eg：setCube({c:cScene, s:0xffffff, w:200, h:100, d:50})
@@ -161,10 +144,11 @@
     */
     function setCube(obj){
         let g = new THREE.CubeGeometry( obj.w || 100, obj.h || 100, obj.d || 100);
-        let m = new THREE.MeshLambertMaterial({ color: obj.s || 0xffffff });
+        let m = new THREE.MeshLambertMaterial({ opacity:0.9, color: obj.s || 0xffffff, transparent:true });
         let c = new THREE.Mesh( g, m );
         c.position.set( obj.x || 0, obj.y || 0, obj.z || 0 );
         obj.c.add( c );
+        return c;
     }
     
     /**
