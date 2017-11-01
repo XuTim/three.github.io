@@ -1,88 +1,150 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>F1</title>
-        <script src="js/three.js"></script>
-        <style type="text/css">
-            div#canvas-frame {
-                border: none;
-                cursor: pointer;
-                width: 100%;
-                height: 600px;
-                background-color: #EEEEEE;
+<html lang="en">
+<head>
+    <title>F1</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+</head>
+<script src="js/three.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/tween.js"></script>
+<script src="js/clock.js"></script>
+<script src="js/index.js"></script>
+<body>
+<div id="threeScene" class="threeScene"></div>
+</body>
+<script>
+
+    var cCamera, cScene, cThree, swidth, sheight, cFov, cNear, cFar;
+    var cContainer = document.getElementById("threeScene");
+    swidth = cContainer.clientWidth;
+    sheight= cContainer.clientHeight;
+    // 初始化场景 start
+    cScene = new THREE.Scene();
+    // end
+    // 初始化渲染器 start
+    cThree = new THREE.WebGLRenderer();
+    cThree.setSize(swidth, sheight);
+    cContainer.appendChild(cThree.domElement);
+    cThree.setClearColor(0xeeeeee, 1.0);
+    // end
+    // 初始化网格 start
+    var grid = setGrid( { c:cScene, w:1000, sw:20 } );
+    // end
+    // 初始化灯光 start
+    var light = setLight( { c:cScene, t:1, s:0xff0000, x:0, y:0, z:50 } );
+    // end
+    // 初始化性能监视器 start
+    var stats = new Stats();
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.left = 'auto';
+    stats.domElement.style.right = '0px';
+    stats.domElement.style.top = '0px';
+    cContainer.appendChild(stats.domElement);
+    // end
+    clock();
+    // 初始化相机 start
+    cFov = 75;
+    cNear= 1;
+    cFar = 10000;
+    cCamera = new THREE.PerspectiveCamera(cFov, swidth / sheight, cNear, cFar);
+    cCamera.position.x = 300;             //相机的位置
+    cCamera.position.y = 200;
+    cCamera.position.z = 320;
+    cCamera.up.x = 0;                     //相机以哪个方向为上方（默认y轴为上方），就是躺着看，趴着看，侧着看的区别
+    cCamera.up.y = 1;
+    cCamera.up.z = 0;
+    cCamera.lookAt({x:0,y:0,z:0});        //相机看向坐标哪个方向
+
+    cContainer.addEventListener( 'mousedown', mousedown, false );
+    cContainer.addEventListener( 'mousemove', mousemove, false );
+    cContainer.addEventListener( 'mouseup', mouseup, false );
+    cContainer.addEventListener('mousewheel', mousewheel, false);
+
+    var isUserInteracting = false,
+        onMouseDownMouseX = 0, onMouseDownMouseY = 0,
+        lon = 0, onMouseDownLon = 0,
+        lat = 0, onMouseDownLat = 0,
+        phi = 0, theta = 0,
+        distance = 500,
+        onPointerDownPointerX = 0,
+        onPointerDownPointerY = 0,
+        onPointerDownLon = 0,
+        onPointerDownLat = 0;
+
+    function mousewheel(e){
+        e.preventDefault();
+        if (e.wheelDelta) {  //判断浏览器IE，谷歌滑轮事件
+            if (e.wheelDelta > 0) { //当滑轮向上滚动时
+                cFov -= (cNear < cFov ? 2 : 0);
             }
-
-        </style>
-        <script>
-            var renderer;
-            function initThree() {
-                width = document.getElementById('canvas-frame').clientWidth;
-                height = document.getElementById('canvas-frame').clientHeight;
-                renderer = new THREE.WebGLRenderer({
-                    antialias : true
-                });
-                renderer.setSize(width, height);
-                document.getElementById('canvas-frame').appendChild(renderer.domElement);
-                renderer.setClearColor(0xFFFFFF, 1.0);
+            if (e.wheelDelta < 0) { //当滑轮向下滚动时
+                cFov += (cFov < cFar ? 2 : 0);
             }
-
-            var camera;
-            function initCamera() {
-                camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-                camera.position.x = 600;
-                camera.position.y = 0;
-                camera.position.z = 600;
-                camera.up.x = 0;
-                camera.up.y = 1;
-                camera.up.z = 0;
-                camera.lookAt({
-                    x : 0,
-                    y : 0,
-                    z : 0
-                });
+        } else if (e.detail) {  //Firefox滑轮事件
+            if (e.detail > 0) { //当滑轮向上滚动时
+                cFov -= 2;
             }
-
-            var scene;
-            function initScene() {
-                scene = new THREE.Scene();
+            if (e.detail < 0) { //当滑轮向下滚动时
+                cFov += 2;
             }
+        }
+        cCamera.fov = cFov;
+        cCamera.updateProjectionMatrix();
+    }
+    function mousedown( event ) {
+        event.preventDefault();
+        isUserInteracting = true;
+        onPointerDownPointerX = event.clientX;
+        onPointerDownPointerY = event.clientY;
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+    }
+    function mousemove( event ) {
+        if ( isUserInteracting === true ) {
+            lon = ( onPointerDownPointerX - event.clientX ) * 0.1 + onPointerDownLon;
+            lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
+        }
+    }
+    function mouseup( event ) {
+        isUserInteracting = false;
+    }
+    function updCamera(){
+        lat = Math.max( - 85, Math.min( 85, lat ) );
+        phi = THREE.Math.degToRad( 90 - lat );
+        theta = THREE.Math.degToRad( lon );
+        cCamera.position.x = distance * Math.sin( phi ) * Math.cos( theta );
+        cCamera.position.y = distance * Math.cos( phi );
+        cCamera.position.z = -distance * Math.sin( phi ) * Math.sin( theta );
+        cCamera.lookAt({x:0,y:0,z:0});
+    }
+    // end
+    // 立方体 start
+    var c1 = setCube({c:cScene, s:0x000000, w:200, h:100, d:50});
+    setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, x:280});
+    setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, x:-280});
+    setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, y:160});
+    setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, y:-160});
+    setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, z:-90});
+    setCube({c:cScene, s:0xffffff, w:200, h:100, d:50, z:330});
+    var geometry = new THREE.CubeGeometry(120, 120, 120);
+    var texture = new THREE.Texture( canvas);
+    var material = new THREE.MeshBasicMaterial({map:texture});
+    texture.needsUpdate = true;
+    var mesh = new THREE.Mesh( geometry,material );
+    mesh.position.set(-500,300,-200);
+    cScene.add( mesh );
+    // end
 
-            var light;
-            function initLight() {
-            // A start
-                light = new THREE.AmbientLight(0x0000FF);
-                light.position.set(100, 100, 200);
-                scene.add(light);
-            // A end
+    function render(){
+        c1.rotateX(0.01);
+        requestAnimationFrame(render);
+        updCamera();
+        cThree.render(cScene, cCamera);
+        stats.update();
+    }
+    render();
 
-            }
-
-            var cube;
-            function initObject() {
-                var geometry = new THREE.CubeGeometry( 200, 100, 50,4,4);
-                // B start
-                var material = new THREE.MeshLambertMaterial( { color:0xffffff} );
-                // B end
-                var mesh = new THREE.Mesh( geometry,material);
-                mesh.position = new THREE.Vector3(0,0,0);
-                scene.add(mesh);
-            }
-
-            function threeStart() {
-                initThree();
-                initCamera();
-                initScene();
-                initLight();
-                initObject();
-                renderer.clear();
-                renderer.render(scene, camera);
-            }
-
-        </script>
-    </head>
-
-    <body onload="threeStart();">
-        <div id="canvas-frame"></div>
-    </body>
+</script>
 </html>

@@ -1,35 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>F1</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" type="text/css" href="css/index.css" />
 </head>
 <script src="js/three.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/tween.js"></script>
 <script src="js/clock.js"></script>
-
+<script src="js/index.js"></script>
 <body>
     <div id="threeScene" class="threeScene"></div>
 </body>
 <script>
-//    if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
     clock();
     var swidth = document.getElementById("threeScene").clientWidth;
     var sheight= document.getElementById("threeScene").clientHeight;
 
-
-
     // 初始化场景
     var cScene = new THREE.Scene();
 
-
-
     // 初始化相机
-    var cCamera = new THREE.PerspectiveCamera(75, swidth / sheight, 1, 10000);
+    var cFov = 75;
+    var cNear = 1;
+    var cFar = 10000;
+    var cCamera = new THREE.PerspectiveCamera(cFov, swidth / sheight, cNear, cFar);
     cCamera.position.x = 300;             //相机的位置
     cCamera.position.y = 200;
     cCamera.position.z = 320;
@@ -37,15 +34,33 @@
     cCamera.up.y = 1;
     cCamera.up.z = 0;
     cCamera.lookAt({x:0,y:0,z:0});        //相机看向坐标哪个方向
-
+    document.getElementById("threeScene").addEventListener('mousewheel', mousewheel, false);
+    function mousewheel(e){
+        e.preventDefault();
+        if (e.wheelDelta) {  //判断浏览器IE，谷歌滑轮事件
+            if (e.wheelDelta > 0) { //当滑轮向上滚动时
+                cFov -= (cNear < cFov ? 2 : 0);
+            }
+            if (e.wheelDelta < 0) { //当滑轮向下滚动时
+                cFov += (cFov < cFar ? 2 : 0);
+            }
+        } else if (e.detail) {  //Firefox滑轮事件
+            if (e.detail > 0) { //当滑轮向上滚动时
+                cFov -= 2;
+            }
+            if (e.detail < 0) { //当滑轮向下滚动时
+                cFov += 2;
+            }
+        }
+        cCamera.fov = cFov;
+        cCamera.updateProjectionMatrix();
+    }
 
     // 初始化渲染器
     var cThree = new THREE.WebGLRenderer();
     cThree.setSize(swidth, sheight);
     document.getElementById("threeScene").appendChild(cThree.domElement);
     cThree.setClearColor(0xeeeeee, 1.0);
-
-
 
     // 初始化性能监视器
     var stats = new Stats();
@@ -55,11 +70,8 @@
     stats.domElement.style.top = '0px';
     document.getElementById("threeScene").appendChild(stats.domElement);
 
-
     //初始化网格
     var grid = setGrid( { c:cScene, w:1000, sw:20 } );
-
-
 
     //立方体 start
     var c1 = setCube({c:cScene, s:0x000000, w:200, h:100, d:50});
@@ -98,7 +110,6 @@
     //setLight({c:cScene, s:0xff0000});//增加环境光，最基础的，不用t，不用方向。
     var l1 = setLight( { c:cScene, t:1, s:0x00ff00, x:0, y:0, z:50 } );
 
-
     function render(){
 //        cCamera.position.x = cCamera.position.x +0.1;
 //        cube.position.x += 0.02;
@@ -108,72 +119,10 @@
 //        texture.needsUpdate = true;
 //        cControl.update();
         cThree.render(cScene, cCamera);
-
         stats.update();
         // TWEEN.update();
     }
     render();
 
-
-    /**
-     *  一键创建网格
-     *  obj.c   要加入网格的场景
-     *  obj.w   网格总长宽
-     *  obj.sw  小网格切割数
-     */
-    function setGrid(obj){
-        let g = new THREE.GridHelper( obj.w || 300, obj.sw || 300 );    //网格
-        obj.c.add( g );
-        let a = new THREE.AxisHelper( obj.w || 300 );                   //辅助线
-        obj.c.add( a );
-        return g;
-    }
-
-    /**
-     *  一键创建物体函数  eg：setCube({c:cScene, s:0xffffff, w:200, h:100, d:50})
-     * obj.c    要加入物体的场景
-     * obj.g    物体形状（）
-     * obj.m    物体材质（）
-     * obj.s    物体本身颜色
-     * obj.w    物体宽
-     * obj.h    物体高
-     * obj.d    物体长
-     * obj.x    物体x坐标
-     * obj.y    物体y坐标
-     * obj.z    物体z坐标
-    */
-    function setCube(obj){
-        let g = new THREE.CubeGeometry( obj.w || 100, obj.h || 100, obj.d || 100);
-        let m = new THREE.MeshLambertMaterial({ opacity:0.9, color: obj.s || 0xffffff, transparent:true });
-        let c = new THREE.Mesh( g, m );
-        c.position.set( obj.x || 0, obj.y || 0, obj.z || 0 );
-        obj.c.add( c );
-        return c;
-    }
-    
-    /**
-     * 一键创建光源函数
-     * obj.c    要加入光源的场景    eg：setLight({c:cScene, s:0x0000ff, x:0, y:0, z:1})
-     * obj.t    光的类型：
-     *                  0    环境光AmbientLight（默认）
-     *                  1    平行光DirectionalLight
-     *                  2    点光源PointLight
-     * obj.s    光源颜色
-     * obj.x    光源x坐标
-     * obj.y    光源y坐标
-     * obj.z    光源z坐标
-    */
-    function setLight(obj){
-        //实例化光源对象 start
-        let LIGHT = THREE.AmbientLight;
-        obj.t && obj.t==1 && (LIGHT = THREE.DirectionalLight);
-        obj.t && obj.t==2 && (LIGHT = THREE.PointLight);
-        
-        let l = new LIGHT( obj.s || 0xff0000 );
-        // end
-        l.position.set( obj.x || 0, obj.y || 0, obj.z || 0 );
-        obj.c.add( l );
-        return l;
-    }
 </script>
 </html>
